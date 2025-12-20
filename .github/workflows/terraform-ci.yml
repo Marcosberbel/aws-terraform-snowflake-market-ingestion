@@ -1,0 +1,44 @@
+name: terraform-ci
+on:
+  pull_request:
+    paths:
+      - "infra/**"
+  push:
+    branches: [ "main" ]
+    paths:
+      - "infra/**"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/envs/dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.4.3
+
+      - name: Terraform fmt (check)
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init
+        run: terraform init
+
+      - name: Terraform validate
+        run: terraform validate
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+
+      - name: TFLint
+        run: |
+          tflint --init
+          tflint
+
+      - name: Terraform plan (PR only)
+        if: github.event_name == 'pull_request'
+        run: terraform plan -no-color
