@@ -1,0 +1,42 @@
+name: terraform-ci
+
+on:
+  pull_request:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        envdir: [ "infra/environments/dev", "infra/environments/pre", "infra/environments/pro", "infra/state" ]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@v4
+
+      - name: Terraform fmt (check)
+        run: terraform fmt -check -recursive
+
+      - name: Terraform init (backend disabled for CI)
+        working-directory: ${{ matrix.envdir }}
+        run: terraform init -backend=false
+
+      - name: Terraform validate
+        working-directory: ${{ matrix.envdir }}
+        run: terraform validate
+
+      - name: TFLint
+        working-directory: ${{ matrix.envdir }}
+        run: |
+          tflint --init
+          tflint
