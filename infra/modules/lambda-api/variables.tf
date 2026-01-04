@@ -19,13 +19,13 @@ variable "in_vpc" {
 }
 
 variable "vpc_subnet_ids" {
-  type        = list(string)
-  default     = []
+  type    = list(string)
+  default = []
 }
 
 variable "vpc_security_group_ids" {
-  type        = list(string)
-  default     = []
+  type    = list(string)
+  default = []
 }
 
 variable "log_group_name" {
