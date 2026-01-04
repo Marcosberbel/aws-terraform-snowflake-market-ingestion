@@ -6,7 +6,22 @@ on:
     branches: [ "main" ]
 
 jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      # Limita el fmt a infra (así no toca cosas fuera)
+      - name: Terraform fmt (check)
+        run: terraform fmt -check -recursive infra
+
   validate:
+    needs: fmt
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -23,9 +38,6 @@ jobs:
 
       - name: Setup TFLint
         uses: terraform-linters/setup-tflint@v4
-
-      - name: Terraform fmt (check)
-        run: terraform fmt -check -recursive
 
       - name: Terraform init (backend disabled for CI)
         working-directory: ${{ matrix.envdir }}
